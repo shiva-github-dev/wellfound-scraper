@@ -1,0 +1,24 @@
+# Databases
+*.db
+
+# CSV exports
+*.csv
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Debug/scratch scripts
+check_*.py
+debug_*.py
+verify_*.py
+quality_check.py
+fix_false_pos.py
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
