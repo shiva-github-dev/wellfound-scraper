@@ -8,6 +8,7 @@ Scrape, analyze, and explore AI/ML job listings from [Wellfound](https://wellfou
 - **Extracts** skills, experience requirements, salary, domains, seniority levels
 - **Enriches** jobs by parsing free-text descriptions for requirements, responsibilities, education, benefits
 - **Presents** everything in an interactive dashboard with filters, pagination, and summary charts
+- **Tracks new jobs** daily — scrapes first 3 pages, adds only new listings
 
 ## Quick Start
 
@@ -29,12 +30,15 @@ streamlit run app.py --server.port 8501
 ## Project Structure
 
 ```
-scraper.py          # Crawl4AI scraper — listing/detail parsers, classification, enrichment
-database.py         # SQLite schema (55 columns), CRUD operations, query helpers
-app.py              # Streamlit frontend — Job Explorer + Summary Dashboard
-requirements.txt    # Python dependencies
-PROJECT_DOCS.md     # Full technical documentation
-CONTEXT.md          # Quick-reference context for agents
+scraper.py              # Crawl4AI scraper — listing/detail parsers, classification, enrichment
+database.py             # SQLite schema (55 columns), CRUD operations, query helpers
+app.py                  # Streamlit frontend — Job Explorer + Summary Dashboard
+daily_scrape.py         # Daily scraper — first 3 pages, skips existing jobs
+daily_scrape.bat        # Batch runner for scheduled task
+wellfound_daily_scrape.xml  # Windows Task Scheduler config (daily at 9am)
+requirements.txt        # Python dependencies
+PROJECT_DOCS.md         # Full technical documentation
+CONTEXT.md              # Quick-reference context for agents
 ```
 
 ## Frontend
@@ -55,9 +59,21 @@ Two tabs:
 |--------|---------|
 | Scrape ML jobs | `python scraper.py --pages 20 --delay 3.0` |
 | Scrape DS jobs | `python scraper.py --pages 20 --delay 3.0 --role data-scientist --db wellfound_ds.db` |
+| Daily scrape (both roles) | `python daily_scrape.py` |
+| Daily scrape (ML only) | `python daily_scrape.py --role machine-learning-engineer` |
 | Run analysis | `python analyze_ds_full.py` |
 | Export CSV | `python export_ds.py` |
 | Launch app | `streamlit run app.py --server.port 8501` |
+
+## Scheduling Daily Scrapes
+
+**Windows Task Scheduler:**
+1. Open Task Scheduler (`taskschd.msc`)
+2. Click **Import Task...**
+3. Select `wellfound_daily_scrape.xml`
+4. Task runs daily at 9:00 AM, scrapes first 3 pages of both roles
+
+**Or run manually:** `daily_scrape.bat`
 
 ## Tech Stack
 
