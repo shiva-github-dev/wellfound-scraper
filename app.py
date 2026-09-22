@@ -46,8 +46,12 @@ def _parse_json_list(val):
         pass
     return [x.lower().strip() for x in str(val).split(",") if x.strip() and x.strip() != "null"]
 
-def _parse_relative_date(text):
-    """Convert '3 days ago', '2 weeks ago', '1 month ago' etc to datetime."""
+def _parse_relative_date(text, reference_date=None):
+    """Convert '3 days ago', '2 weeks ago', '1 month ago' etc to datetime.
+    
+    Uses reference_date (scraped_at) as the anchor instead of datetime.now(),
+    so the result reflects when the job was actually posted.
+    """
     if not text or (isinstance(text, float) and pd.isna(text)):
         return None
     text = str(text).lower().strip()
@@ -56,15 +60,20 @@ def _parse_relative_date(text):
         return None
     num = int(m.group(1))
     unit = m.group(2)
-    now = datetime.now()
+    ref = reference_date if reference_date else datetime.now()
+    if isinstance(ref, str):
+        try:
+            ref = datetime.strptime(ref, "%Y-%m-%d %H:%M:%S")
+        except:
+            ref = datetime.now()
     if unit == "day":
-        return now - timedelta(days=num)
+        return ref - timedelta(days=num)
     elif unit == "week":
-        return now - timedelta(weeks=num)
+        return ref - timedelta(weeks=num)
     elif unit == "month":
-        return now - timedelta(days=num * 30)
+        return ref - timedelta(days=num * 30)
     elif unit == "year":
-        return now - timedelta(days=num * 365)
+        return ref - timedelta(days=num * 365)
     return None
 
 def get_all_skills(df):
@@ -185,7 +194,10 @@ with tab_jobs:
     elif sort_by == "Lowest Salary":
         df = df.sort_values("salary_min", ascending=True, na_position="last")
     else:
-        df["_parsed_date"] = df["posted_date_raw"].apply(_parse_relative_date)
+        df["_parsed_date"] = df.apply(
+            lambda row: _parse_relative_date(row["posted_date_raw"], row.get("scraped_at")),
+            axis=1
+        )
         df = df.sort_values("_parsed_date", ascending=False, na_position="last")
         df = df.drop(columns=["_parsed_date"])
 
