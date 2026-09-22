@@ -9,12 +9,16 @@
       <Repetition>
         <Interval>P1D</Interval>
       </Repetition>
-      <StartBoundary>2026-09-23T09:00:00</StartBoundary>
+      <StartBoundary>2026-09-23T16:00:00</StartBoundary>
       <Enabled>true</Enabled>
       <ScheduleByDay>
         <DaysInterval>1</DaysInterval>
       </ScheduleByDay>
     </CalendarTrigger>
+    <BootTrigger>
+      <Enabled>true</Enabled>
+      <Delay>PT5M</Delay>
+    </BootTrigger>
   </Triggers>
   <Principals>
     <Principal id="Author">
