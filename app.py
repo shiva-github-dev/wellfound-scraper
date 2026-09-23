@@ -76,12 +76,25 @@ def _parse_relative_date(text, reference_date=None):
         return ref - timedelta(days=num * 365)
     return None
 
+# Domain names and false positives that should not appear as skills
+EXCLUDE_AS_SKILL = {
+    "go", "goLang", "golang",
+    "machine learning", "ml", "ai", "artificial intelligence",
+    "data science", "deep learning", "nlp", "computer vision",
+    "applied ml", "general ml", "mlops", "generative ai",
+    "robotics", "ai safety", "recommender systems", "time series",
+    "data science & analytics",
+}
+
 def get_all_skills(df):
     skills = Counter()
     for lst in df["skills_parsed"]:
         for s in lst:
-            if s and s not in ("hiring contact",) and "image" not in s:
-                skills[s] += 1
+            if not s or s in ("hiring contact",) or "image" in s:
+                continue
+            if s in EXCLUDE_AS_SKILL:
+                continue
+            skills[s] += 1
     return skills
 
 def get_all_domains(df):
