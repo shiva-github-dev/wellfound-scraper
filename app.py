@@ -199,6 +199,40 @@ with tab_jobs:
     if relocation_only:
         df = df[df["relocation_support"] == 1]
 
+    # --- Job Posting Stats ---
+    st.divider()
+    st.markdown("##### :material/bolt: Job Posting Activity")
+
+    def _job_age_days(row):
+        d = _parse_relative_date(row.get("posted_date_raw"), row.get("scraped_at"))
+        if d is None:
+            return None
+        return (datetime.now() - d).days
+
+    stats_df = df_raw.copy()
+    stats_df["_age_days"] = stats_df.apply(_job_age_days, axis=1)
+
+    stats_rows = []
+    for role in ["ML Engineer", "Data Scientist"]:
+        rdf = stats_df[stats_df["role"] == role]
+        ages = rdf["_age_days"].dropna()
+        stats_rows.append({
+            "Role": role,
+            "Today": int((ages <= 0).sum()),
+            "Last 7 Days": int((ages <= 7).sum()),
+            "Last 30 Days": int((ages <= 30).sum()),
+            "Total": len(rdf),
+        })
+
+    stats_table = pd.DataFrame(stats_rows)
+    st.dataframe(stats_table, hide_index=True, use_container_width=True)
+
+    last_scraped = stats_df["scraped_at"].max() if "scraped_at" in stats_df.columns else None
+    if last_scraped:
+        st.caption(f":material/schedule: Last scraped: **{last_scraped}** | Daily check at 4:00 PM IST")
+
+    st.divider()
+
     # --- Sort ---
     st.caption(f"Showing **{len(df)}** of {len(df_raw)} jobs")
     sort_by = st.selectbox("Sort by", ["Newest", "Highest Salary", "Lowest Salary"], index=0, key="sort_filter")
